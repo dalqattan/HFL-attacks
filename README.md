@@ -18,7 +18,9 @@ pip install -r requirements.txt
 ## Experiment configurations ##
 
 Create a TOML file to write the experiment configurations. 
+
 You can find sample configuration files in the configuration folder.
+
 You can create your own or simply choose one of the configuration files to reproduce our results.
 
 ## Run the experiment. ##
