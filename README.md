@@ -29,7 +29,7 @@ python HFL.py -config configuration/[ConfigurationFile].toml
 Note: Replace [ConfigurationFile] with any of the file names in the configuration folder.
 
 Each server's model will be stored in the location specified in the configuration file at every global aggregation round.
-We suggest storing the any experiment output in the output folder in this repo.
+We suggest storing any experiment output in the output folder in this repo.
 
 ## BibTeX ##
 ```
