@@ -9,10 +9,10 @@ You can find the paper at this link: [here] ()
 Our environment has been tested on Ubuntu 22, CUDA 11.8 with A100, A800 and A6000.
 Clone our repo and create conda environment
 ```
-git clone https://github.com/dalqattan/SecHFL.git
-cd SecHFL
-python -m venv SecHFL_env
-source SecHFL_env/bin/activate
+git clone https://github.com/dalqattan/HFL-attacks.git
+cd HFL-attacks
+python -m venv HFL-env
+source HFL-env/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -24,11 +24,12 @@ You can create your own or simply choose one of the configuration files to repro
 
 ## Run the experiment. ##
 ```
-python path/to/SecHFL/FL.py -config path/to/SecHFL/configuration/[ConfigurationFile].toml
+python HFL.py -config configuration/[ConfigurationFile].toml
 ```
 Note: Replace [ConfigurationFile] with any of the file names in the configuration folder.
 
 Each server's model will be stored in the location specified in the configuration file at every global aggregation round.
+We suggest storing the any experiment output in the output folder in this repo.
 
 ## BibTeX ##
 ```
