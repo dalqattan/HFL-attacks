@@ -3,8 +3,6 @@
 This repository contains the code for our paper that has been accepted by [ICANN 2024](https://e-nns.org/icann2024/)
 You can find the paper at this link: [here] ()
 
-**Abstract:**
-
 ## Setup ##
 Our environment has been tested on Nvidia V100 GPUs povided by [JADE](https://www.jade.ac.uk/)
 To start Clone our repo and create a virtual environment
