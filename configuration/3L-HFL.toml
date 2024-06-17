@@ -1,0 +1,89 @@
+# Experiment Configuration File
+
+# Unique identifier for the experiment
+experiment_id = 3
+
+# Directory to store the output of the experiment
+store_folder = "/path/to/HFL-attacks/output"
+
+# Directory where the dataset is stored
+data_path = "/path/to/HFL-attacks/data/mnist_100_dirichlet_0.01"
+
+# Name of the dataset being used (choose from "mnist", "fashion-mnist", "cifar10")
+dataset_name = "mnist"
+
+# Topology description for the federated learning setup
+[topology_description]
+# Number of clients participating in the experiment
+number_of_clients = 100
+# Number of levels in the topology
+topology_levels = 3
+# Name of the topology for identification
+topology_name = "3L-202"
+
+# Detailed topology structure defining the hierarchy of servers and clients
+[topology]
+    [topology.cloud0]
+        "server10" = ["client1", "client2", "client3", "client4", "client5"]
+        "server11" = ["client6", "client7", "client8", "client9", "client10"]
+        "server12" = ["client11", "client12", "client13", "client14", "client15"]
+        "server13" = ["client16", "client17", "client18", "client19", "client20"]
+        "server14" = ["client21", "client22", "client23", "client24", "client25"]
+        "server15" = ["client26", "client27", "client28", "client29", "client30"]
+        "server16" = ["client31", "client32", "client33", "client34", "client35"]
+        "server17" = ["client36", "client37", "client38", "client39", "client40"]
+        "server18" = ["client41", "client42", "client43", "client44", "client45"]
+        "server19" = ["client46", "client47", "client48", "client49", "client50"]
+        "server110" = ["client51", "client52", "client53", "client54", "client55"]
+        "server111" = ["client56", "client57", "client58", "client59", "client60"]
+        "server112" = ["client61", "client62", "client63", "client64", "client65"]
+        "server113" = ["client66", "client67", "client68", "client69", "client70"]
+        "server114" = ["client71", "client72", "client73", "client74", "client75"]
+        "server115" = ["client76", "client77", "client78", "client79", "client80"]
+        "server116" = ["client81", "client82", "client83", "client84", "client85"]
+        "server117" = ["client86", "client87", "client88", "client89", "client90"]
+        "server118" = ["client91", "client92", "client93", "client94", "client95"]
+        "server119" = ["client96", "client97", "client98", "client99", "client100"]
+
+# Local training configuration for each client
+[local_training]
+# Number of epochs for local training
+epochs = 1
+# Batch size for local training
+batch_size = 32
+
+# Federated training configuration
+[federated_training]
+# Number of aggregation rounds at each server-side level [level0, level1]
+aggregation_round = [20, 2]
+# Percentage of participants in each aggregation round (e.g., 0.10 means 10%)
+percent_of_participats = 0.10
+# Start training mode: "start" for new training or "resume" to continue from a saved model
+start_training = "start"
+# Path to the model to resume from (if start_training is "resume")
+resume_from_model = "/path/to/HFL-attacks/output/[experiment output folder]/level0/cloud0/memory/model/global_model_round_19.h5"
+# Round number to resume from (if start_training is "resume")
+resume_from_round_number = 14
+
+# Distillation training configuration
+[distillation_training]
+# Enable or disable distillation training
+distillation_enable = false
+# Path to the teacher model for distillation
+teacher_model = "/path/to/HFL-attacks/output/[experiment output folder]/level0/cloud0/memory/model/global_model_round_20.h5"
+
+# Adversarial training configuration
+[adversarial_training]
+# Enable or disable adversarial training
+adversarial_training_enable = false
+
+# Attack configuration
+[attack]
+# Enable or disable attack in the experiment
+attack_enable = true
+# Name of the attack (choose from "backdoor", "label_flipping", "signflip", "fgm")
+attack_name = "label_flipping"
+# List of malicious nodes (should be from topology_levels-1 or topology_levels-2)
+malicious_nodes = ["client1", "client2", "client3", "client4", "client5", "client6", "client7", "client8", "client9", "client10"]
+# Percentage of data to be poisoned (if applicable)
+percent_of_poison_data = 1.0
