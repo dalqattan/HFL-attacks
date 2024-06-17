@@ -24,7 +24,7 @@ You can create your own or simply choose one of the configuration files to repro
 
 ## Run the experiment. ##
 ```
-python path/to/FL.py -config path/to/[ConfigurationFile].toml
+python path/to/SecHFL/FL.py -config path/to/SecHFL/configuration/[ConfigurationFile].toml
 ```
 Note: Replace [ConfigurationFile] with any of the file names in the configuration folder.
 
