@@ -1,4 +1,4 @@
-##Security Assessment of Hierarchical Federated Deep Learning'
+## Security Assessment of Hierarchical Federated Deep Learning ##
 
 This repository contains the code for our paper that has been accepted by [ICANN 2024](https://e-nns.org/icann2024/)
 You can find the paper at this link: [here] ()
