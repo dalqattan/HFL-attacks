@@ -4,7 +4,8 @@ This repository contains the code for our paper that has been accepted by [ICANN
 You can find the paper in this link: [here] ()
 
 ## Setup ##
-Our environment has been tested on Nvidia V100 GPUs povided by [JADE](https://www.jade.ac.uk/)
+Our environment has been tested on Nvidia V100 GPUs povided by [JADE](https://www.jade.ac.uk/).
+
 To start Clone our repo and create a virtual environment
 ```
 git clone https://github.com/dalqattan/HFL-attacks.git
