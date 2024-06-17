@@ -6,8 +6,8 @@ You can find the paper at this link: [here] ()
 **Abstract:**
 
 ## Setup ##
-Our environment has been tested on Ubuntu 22, CUDA 11.8 with A100, A800 and A6000.
-Clone our repo and create conda environment
+Our environment has been tested on Nvidia V100 GPUs povided by [JADE](https://www.jade.ac.uk/)
+To start Clone our repo and create a virtual environment
 ```
 git clone https://github.com/dalqattan/HFL-attacks.git
 cd HFL-attacks
