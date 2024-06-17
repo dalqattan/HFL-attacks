@@ -15,15 +15,41 @@ from Training_time_attacks import attack_labelflipping, attack_backdoor
 from Inference_time_attacks import attacks
 
 def parse_arguments():
+    """
+    Parse command line arguments for the experiment configurations.
+    
+    Returns:
+        argparse.Namespace: Parsed arguments.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('-config', '--configurations', help='experiment configurations')
     return parser.parse_args()
 
 def load_configurations(config_path):
+    """
+    Load experiment configurations from a TOML file.
+    
+    Args:
+        config_path (str): Path to the TOML configuration file.
+    
+    Returns:
+        dict: Experiment configurations.
+    """
     with open(config_path, mode="rb") as fp:
         return tomli.load(fp)
 
 def create_experiment_folder(exp_id, exp_description, work_space):
+    """
+    Create the main folder for storing experiment results.
+    
+    Args:
+        exp_id (str): Experiment ID.
+        exp_description (str): Description of the experiment.
+        work_space (str): Base directory for the experiment.
+    
+    Returns:
+        str: Path to the created experiment folder.
+    """
     exp_main_folder_path = work_space 
     training_time = datetime.now().strftime("%d-%m-%y_%I-%M-%S-%p") 
     exp_folder = os.path.join(exp_main_folder_path, f'Exp_{exp_id}_{training_time}_{exp_description}')
@@ -31,6 +57,16 @@ def create_experiment_folder(exp_id, exp_description, work_space):
     return exp_folder
 
 def create_model(dataset_name, image_shape):
+    """
+    Create a Convolutional Neural Network model based on the dataset.
+    
+    Args:
+        dataset_name (str): Name of the dataset (e.g., 'mnist', 'cifar10').
+        image_shape (tuple): Shape of the input images.
+    
+    Returns:
+        tf.keras.models.Sequential: Compiled CNN model.
+    """
     model = Sequential()
     if dataset_name in ['mnist', 'fashion-mnist']:
         model.add(layers.Conv2D(32, (3, 3), padding="same", input_shape=image_shape))
@@ -79,6 +115,9 @@ def create_model(dataset_name, image_shape):
     return model
 
 class Node:
+    """
+    Base class for a Node in the federated learning topology.
+    """
     def __init__(self, id, name, node_type, node_level, saved_data_path, image_shape, n_classes):
         self.id = id
         self.name = name
@@ -95,36 +134,76 @@ class Node:
         self.n_classes = n_classes
 
     def set_training_parameters(self, training_epoch, training_batch_size):
+        """
+        Set the training parameters for the node.
+        
+        Args:
+            training_epoch (int): Number of training epochs.
+            training_batch_size (int): Size of the training batch.
+        """
         self.training_epoch = training_epoch
         self.training_batch_size = training_batch_size
 
     def print_info(self):
+        """
+        Print the information of the node.
+        """
         print(f'Node ID: {self.id}, Name: {self.name}, Type: {self.node_type}, Level: {self.node_level}')
         print(f'Memory Path: {self.memory_path}, Global Model: {self.global_model}, Local Model: {self.local_model}')
         print(f'Training Epoch: {self.training_epoch}, Training Batch Size: {self.training_batch_size}')
 
     def get_clean_data(self):
+        """
+        Load and return the clean training data.
+        
+        Returns:
+            tuple: Training images, labels, and the number of samples.
+        """
         train_images = np.load(os.path.join(self.data_path, 'x_train.npy'))
         train_labels = np.load(os.path.join(self.data_path, 'y_train.npy'))
         return train_images, train_labels, len(train_images)
 
     def upload_model(self):
+        """
+        Upload the local model.
+        
+        Returns:
+            str: Path to the local model.
+        """
         return self.local_model
 
     def download_model(self, model):
+        """
+        Download and set the global model.
+        
+        Args:
+            model (str): Path to the global model.
+        """
         self.global_model = model
 
     def local_training(self, initial_training=True):
+        """
+        Perform local training on the node.
+        
+        Args:
+            initial_training (bool): Flag to indicate initial training or continued training.
+        
+        Returns:
+            tuple: Path to the trained local model and the number of samples.
+        """
         model = create_model(self.image_shape, self.n_classes) if initial_training else tf.keras.models.load_model(self.global_model)
         train_images, train_labels, num_samples = self.get_clean_data()
         self.print_info()
-        history = model.fit(x=train_images, y=train_labels, epochs=self.training_epoch, batch_size=self.training_batch_size)
+        model.fit(x=train_images, y=train_labels, epochs=self.training_epoch, batch_size=self.training_batch_size)
         model_path = os.path.join(self.memory_path, 'model', 'local_model.h5')
         model.save(model_path)
         self.local_model = model_path
         return self.local_model, num_samples
 
 class Client(Node):
+    """
+    Client node in the federated learning topology.
+    """
     def __init__(self, id, name, node_type, node_level, saved_data_path, image_shape, n_classes):
         super().__init__(id, name, node_type, node_level, saved_data_path, image_shape, n_classes)
         self.DPA_enable = False
@@ -134,10 +213,32 @@ class Client(Node):
         self.num_samples = 0
 
     def set_poisoning_parameters(self, DPA_enable, MPA_enable):
+        """
+        Set the poisoning parameters for the client.
+        
+        Args:
+            DPA_enable (bool): Flag to enable/disable data poisoning attacks.
+            MPA_enable (bool): Flag to enable/disable model poisoning attacks.
+        """
         self.DPA_enable = DPA_enable
         self.MPA_enable = MPA_enable
 
     def get_poisoned_data(self, train_images, train_labels, attack_name, percent_poison, target_labels, source_labels, continual_training_path):
+        """
+        Generate and return poisoned training data.
+        
+        Args:
+            train_images (np.ndarray): Clean training images.
+            train_labels (np.ndarray): Clean training labels.
+            attack_name (str): Name of the attack.
+            percent_poison (float): Percentage of data to poison.
+            target_labels (np.ndarray): Target labels for the attack.
+            source_labels (np.ndarray): Source labels for the attack.
+            continual_training_path (str): Path to the model for adversarial training.
+        
+        Returns:
+            tuple: Poisoned training images, labels, and the number of samples.
+        """
         if attack_name == 'backdoor':
             _, poison_train_images, poison_train_labels = attack_backdoor.generate(train_images, train_labels, target_labels, source_labels, self.n_classes, percent_poison)
         elif attack_name == 'label_flipping':
@@ -150,13 +251,24 @@ class Client(Node):
         return poison_train_images, poison_train_labels, len(poison_train_images)
 
     def local_training(self, initial_training=True, distillation_enable=False, global_round=1):
+        """
+        Perform local training on the client node, with optional distillation.
+        
+        Args:
+            initial_training (bool): Flag to indicate initial training or continued training.
+            distillation_enable (bool): Flag to enable/disable distillation.
+            global_round (int): The current global round number.
+        
+        Returns:
+            tuple: Path to the trained local model and the number of samples.
+        """
         model = create_model(self.image_shape, self.n_classes) if initial_training else tf.keras.models.load_model(self.global_model)
         self.print_info()
         if distillation_enable:
             teacher_model = tf.keras.models.load_model(teacher_model_path)
             preds = teacher_model.predict(x=self.train_images, batch_size=self.training_batch_size)
             self.train_labels = preds
-        history = model.fit(x=self.train_images, y=self.train_labels, epochs=self.training_epoch, batch_size=self.training_batch_size)
+        model.fit(x=self.train_images, y=self.train_labels, epochs=self.training_epoch, batch_size=self.training_batch_size)
         if self.MPA_enable:
             model = self.get_poisoned_model(model)
         model_path = os.path.join(self.memory_path, 'model', f'local_model_{global_round}.h5')
@@ -165,6 +277,9 @@ class Client(Node):
         return self.local_model, self.num_samples
 
 class Server(Node):
+    """
+    Server node in the federated learning topology.
+    """
     def __init__(self, id, name, node_type, node_level, saved_data_path, image_shape, n_classes):
         super().__init__(id, name, node_type, node_level, saved_data_path, image_shape, n_classes)
         self.local_model_num = 1
@@ -175,10 +290,26 @@ class Server(Node):
         self.MPA_enable = False
 
     def set_child_nodes(self, child_nodes):
+        """
+        Set the child nodes for the server.
+        
+        Args:
+            child_nodes (list): List of child nodes.
+        """
         self.child_nodes = child_nodes
         self.child_nodes_per_round = len(child_nodes)
 
     def aggregation(self, participants, global_round):
+        """
+        Aggregate the models from the participants.
+        
+        Args:
+            participants (list): List of participant nodes.
+            global_round (int): The current global round number.
+        
+        Returns:
+            tuple: Path to the aggregated global model and the total number of samples.
+        """
         w_locals = []
         model_path = self.global_model
         model_last = tf.keras.models.load_model(model_path)
@@ -194,7 +325,7 @@ class Server(Node):
             model_update = tf.keras.models.load_model(model_path)
             params = model_update.get_weights()
             array2 = np.array(params)
-            array1 = array1 + (num_samples * array2)
+            array1 += (num_samples * array2)
             sum_num_samples += num_samples
             K.clear_session()
         array1 /= sum_num_samples
@@ -208,6 +339,17 @@ class Server(Node):
         return self.global_model, sum_num_samples
 
     def start_aggregation(self, initial_training=True, continual_training=False, global_round=1):
+        """
+        Start the aggregation process for the server.
+        
+        Args:
+            initial_training (bool): Flag to indicate initial training or continued training.
+            continual_training (bool): Flag to indicate continual training.
+            global_round (int): The current global round number.
+        
+        Returns:
+            tuple: Path to the aggregated global model and the total number of samples.
+        """
         start_time = datetime.now()
         if initial_training:
             local_model, num_samples = self.local_training(initial_training)
@@ -229,6 +371,9 @@ class Server(Node):
         return self.local_model, num_samples
 
 def main():
+    """
+    Main function to set up and run the federated learning experiment.
+    """
     prompt_args = parse_arguments()
     args = load_configurations(prompt_args.configurations)
 
@@ -237,7 +382,7 @@ def main():
     work_space = args["store_folder"]
     dataset_name = args["dataset_name"]
 
-    n_classes, image_shape = 10, (32, 32, 3) if dataset_name == 'cifar10' else 10, (28, 28, 1)
+    n_classes, image_shape = (10, (32, 32, 3)) if dataset_name == 'cifar10' else (10, (28, 28, 1))
     num_clients = args["topology_description"]["number_of_clients"]
     topology_levels = args["topology_description"]["topology_levels"]
     topology = args["topology"]
@@ -303,6 +448,14 @@ def main():
     nodes = [[] for _ in range(topology_levels)]
 
     def create_nodes(t, level, id):
+        """
+        Create nodes (servers and clients) for the federated learning topology.
+        
+        Args:
+            t (dict): Topology dictionary.
+            level (int): Current level in the topology.
+            id (int): Current node ID.
+        """
         for parent, childs in t.items():
             if isinstance(childs, dict):
                 nodes[level].append(Server(id=id, name=parent, node_type='server', node_level=level, saved_data_path=saved_data_path, image_shape=image_shape, n_classes=n_classes))
@@ -340,6 +493,13 @@ def main():
                 node.num_samples = num_samples
 
     def set_child_nodes(t, level):
+        """
+        Set the child nodes for each server node in the topology.
+        
+        Args:
+            t (dict): Topology dictionary.
+            level (int): Current level in the topology.
+        """
         for parent, childs in t.items():
             for node in nodes[level]:
                 if node.name == parent:
